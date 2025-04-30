@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"github.com/2pizzzza/sentinetAgent/internal/config"
 	"github.com/2pizzzza/sentinetAgent/internal/core"
 	"github.com/2pizzzza/sentinetAgent/pkg/logger"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -32,6 +34,7 @@ func main() {
 	metricsCh := make(chan *metrics.Metrics)
 
 	go linuxMetrics.StartCollecting(100*time.Millisecond, metricsCh)
+	_ = metricsCh
 
 	// go SaveMetrics(ctx, log, metricsCh, redisConn, postgresConn)
 
@@ -50,32 +53,16 @@ func main() {
 	log.Info("Server is dead")
 }
 
-// func PrintMetrics(log *slog.Logger, metricsCh chan *metrics.Metrics) {
-// 	for {
-// 		select {
-// 		case m := <-metricsCh:
-// 			log.Info("Metrics", slog.Float64("CPU Usage", m.CPUUsage))
-// 		}
-// 	}
 
-// }
-
-// func SaveMetrics(ctx context.Context, log *slog.Logger, metricsCh chan *metrics.Metrics, redis *redis.Redis, postgres *postgres.Postgres) {
-// 	for {
-// 		select {
-// 		case m := <-metricsCh:
-// 			log.Info("Metrics", "CPU Usage", m.CPUUsage)
-
-// 			data, err := json.Marshal(m)
-// 			if err != nil {
-// 				log.Info("Error serializing metrics:", err)
-// 				continue
-// 			}
-
-// 			err = redis.Client().Publish(ctx, "metrics", data).Err()
-// 			if err != nil {
-// 				log.Info("Error saving metrics to Redis:", err)
-// 			}
-// 		}
-// 	}
-// }
+func SaveMetrics(ch chan *metrics.Metrics, doneCh chan struct{}){
+	redis, err := redis.SearchFieldTypeVector("metrics")
+	resultCh := make(chan int, 1)
+if err != nil {
+	fmt.Errorf("failde to save metrics to redis")
+	return
+}
+select {
+  doneCh: return
+	resultCh <- ch
+}
+}
